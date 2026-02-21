@@ -22,6 +22,8 @@ LoanAmount = st.number_input("Loan Amount (in thousands)", min_value=0)
 Loan_Amount_Term = st.number_input("Loan Amount Term (in months)", min_value=0, value=360)
 Credit_History = st.selectbox("Credit History", [1.0, 0.0])
 Property_Area = st.selectbox("Property Area", ["Urban", "Semiurban", "Rural"])
+CIBIL_Score = st.number_input("CIBIL Score", min_value=300, max_value=900, value=650)
+
 
 # Prediction button
 if st.button("Predict Loan Eligibility"):
@@ -36,7 +38,8 @@ if st.button("Predict Loan Eligibility"):
         "LoanAmount": LoanAmount,
         "Loan_Amount_Term": Loan_Amount_Term,
         "Credit_History": Credit_History,
-        "Property_Area": Property_Area
+        "Property_Area": Property_Area,
+        "CIBIL_Score": CIBIL_Score
     }
 
     try:
@@ -46,6 +49,9 @@ if st.button("Predict Loan Eligibility"):
             st.success(f"Prediction: **{result['prediction']}**")
             st.write("📊 Probabilities:")
             st.json(result["probability"])
+        if "max_eligible_loan_amount" in result:
+            st.info(f"💡 You are eligible for loan up to: ₹ {result['max_eligible_loan_amount']} (in thousands)")
+
         else:
             st.error("❌ Error: Could not get prediction. Check FastAPI server.")
     except Exception as e:
