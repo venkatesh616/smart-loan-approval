@@ -1,5 +1,6 @@
 import pandas as pd
 import joblib
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
@@ -11,6 +12,22 @@ df = pd.read_csv("loan.csv")   # update with your actual path
 
 # Drop Loan_ID (not useful for prediction)
 df = df.drop("Loan_ID", axis=1)
+
+# --- ADD CIBIL SCORE ---
+df["LoanAmount"] = df["LoanAmount"].fillna(df["LoanAmount"].median())
+df["Credit_History"] = df["Credit_History"].fillna(0)
+df["Dependents"] = df["Dependents"].replace("3+", 3).fillna(0).astype(int)
+
+def generate_cibil(row):
+    score = 500
+    score += 150 if row["Credit_History"] == 1 else -100
+    score += min(row["ApplicantIncome"] / 1000, 100)
+    score += min(row["CoapplicantIncome"] / 1000, 50)
+    score -= row["LoanAmount"] / 5
+    score -= row["Dependents"] * 20
+    return int(np.clip(score, 300, 900))
+
+df["CIBIL_Score"] = df.apply(generate_cibil, axis=1)
 
 # Target variable
 y = df["Loan_Status"]
